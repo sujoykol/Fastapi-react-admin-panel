@@ -1,0 +1,10 @@
+services:
+  api:
+    build:
+      context: .
+    image: ml-admin-api:local
+    container_name: ml-admin-api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
