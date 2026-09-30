@@ -25,6 +25,10 @@ jobs:
         working-directory: backend
         run: pip install -r requirements.txt
 
+      - name: Run backend tests
+        working-directory: backend
+        run: pytest
+
   frontend:
     runs-on: ubuntu-latest
 
@@ -50,3 +54,14 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build backend Docker image
+        working-directory: backend
+        run: docker build -t ml-admin-api:ci .
