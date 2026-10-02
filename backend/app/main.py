@@ -34,6 +34,7 @@ def health_check():
     return {
         "status": "ok",
         "service": "ml-admin-api",
+        "version": "1.1.0",
     }
 
 

@@ -13,4 +13,5 @@ def test_health_check():
     assert response.json() == {
         "status": "ok",
         "service": "ml-admin-api",
+        "version": "1.1.0",
     }
