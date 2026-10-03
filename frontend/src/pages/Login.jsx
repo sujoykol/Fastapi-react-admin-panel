@@ -43,7 +43,7 @@ function Login() {
         <div className="login-header">
           <div className="login-logo">A</div>
 
-          <h1>Admin Panel</h1>
+          <h1>Fast APi Admin Panel</h1>
 
           <p>
             Sign in to access your administration dashboard
