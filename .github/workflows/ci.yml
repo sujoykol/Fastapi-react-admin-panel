@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -73,3 +73,56 @@ jobs:
       - name: Build backend Docker image
         working-directory: backend
         run: docker build -t ml-admin-api:ci .
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    needs:
+      - backend
+      - frontend
+      - docker
+
+    # Deploy only for pushes to main.
+    # Pull requests run CI but do not deploy.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy to OCI
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.OCI_HOST }}
+          username: ${{ secrets.OCI_USER }}
+          key: ${{ secrets.OCI_SSH_KEY }}
+          script: |
+            set -e
+
+            cd ~/Fastapi-react-admin-panel
+
+            echo "Updating source code..."
+            git fetch origin
+            git reset --hard origin/main
+
+            IMAGE_TAG="ml-admin-api:${{ github.sha }}"
+
+            echo "Building Docker image: ${IMAGE_TAG}"
+            docker build -t "${IMAGE_TAG}" ./backend
+
+            echo "Stopping current container..."
+            docker stop ml-admin-api || true
+            docker rm ml-admin-api || true
+
+            echo "Starting new container..."
+            docker run -d \
+              --name ml-admin-api \
+              --env-file ~/ml-admin-api.env \
+              -p 8000:8000 \
+              --restart unless-stopped \
+              "${IMAGE_TAG}"
+
+            echo "Waiting for application..."
+            sleep 5
+
+            echo "Running health check..."
+            curl -f http://localhost:8000/health
+
+            echo "Deployment successful."
